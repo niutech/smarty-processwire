@@ -24,7 +24,7 @@ class SmartyTemplating extends WireData implements Module, ConfigurableModule {
 	public static function getDefaults() {
 		   return array(
 				'caching' => 1,
-				'cache_lifetime' => 60
+				'cache_lifetime' => 3600
 		);
 	}
 	
@@ -32,10 +32,15 @@ class SmartyTemplating extends WireData implements Module, ConfigurableModule {
 		require_once wire('config')->paths->SmartyTemplating . 'Smarty/libs/Smarty.class.php';
 		$this->smarty = new Smarty();
 		$this->addHookAfter('Page::render', $this, 'bootstrapSmarty');
-		
+		$this->pages->addHookAfter('save', $this, 'clearCache'); 
+		$this->pages->addHookAfter('saveField', $this, 'clearCache');
 	}
 
 	public function ___bootstrapSmarty($event) {
+		//Disable Smarty for admin panel
+		if($event->object->template == 'admin')
+			return;
+
 		$this->smarty->caching = $this->data['caching'] ? 1 : 0;
 		$this->smarty->cache_lifetime = intval($this->data['cache_lifetime']);
         
@@ -62,7 +67,11 @@ class SmartyTemplating extends WireData implements Module, ConfigurableModule {
 
 		$event->return = $this->smarty->fetch($event->object->template->filename);
 	}
-	
+
+	public function ___clearCache($event) {
+		$this->smarty->clearAllCache();
+	}
+
 	static public function getModuleConfigInputfields(Array $data) {
 		$fields = new InputfieldWrapper();
 		$modules = wire('modules');		
