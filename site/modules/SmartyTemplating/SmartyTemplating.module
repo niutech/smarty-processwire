@@ -64,6 +64,7 @@ class SmartyTemplating extends WireData implements Module, ConfigurableModule {
 		$this->smarty->assign('sanitizer', wire('sanitizer'));
 		$this->smarty->assign('session', wire('session'));
 		$this->smarty->assign('config', wire('config'));
+		$this->smarty->assign('modules', wire('modules'));
 
 		$event->return = $this->smarty->fetch($event->object->template->filename);
 	}
